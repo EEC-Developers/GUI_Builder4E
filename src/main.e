@@ -10,9 +10,13 @@ OPT OSVERSION=40,PREPROCESS
     #define TRACE ->
 #endif
 
-MODULE 'intuition/intuition','dos/dos'
+MODULE 'intuition/intuition','graphics/gfx','dos/dos'
 
 ENUM ERR_OK
+
+CONST NAME='GUI for E'
+
+DEF g_idcmp,g_scrn,g_wndw
 
 PROC openFile(file)
     DEF buf[144]:STRING
@@ -45,7 +49,14 @@ PROC processArgs()
     ForAll({x},files2,`openFile(x))
 ENDPROC
 
+PROC setup()
+    g_scrn:=OpenS(640,256,4,0,NAME)
+    g_wndw:=OpenW(16,0,624,256,
+        g_idcmp,WFLG_BORDERLESS|WFLG_BACKDROP,NAME,g_scrn,NIL)
+ENDPROC
+
 PROC main() HANDLE
+    setup()
     processArgs()
 EXCEPT
     SELECT exception
@@ -53,6 +64,12 @@ EXCEPT
             -> No errors so do nothing
         CASE 'ARGS'
             WriteF('Arguments couldn\'t be read.\n')
+        CASE 'SPR'
+            WriteF('Couldn\t allocate appropriate sprite.')
+        CASE 'SCR'
+            WriteF('Couldn\'t open custom screen.')
+        CASE 'WIN'
+            WriteF('Couldn\'t open window.')
         CASE 'MEM'
             WriteF('Out of RAM.\n')
         DEFAULT
