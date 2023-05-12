@@ -4,19 +4,24 @@ OPT OSVERSION=40,PREPROCESS
     FATAL('Requires E-VO compiler version 3.6.0 or newer')
 #endif
 
-#ifdef DEBUG
-    #define TRACE WriteF
-#else
-    #define TRACE ->
-#endif
+#date VER '$VER: GUI4E v0.1 (%d.%aM.%y) by Samuel D. Crow'
 
-MODULE 'intuition/intuition','graphics/gfx','dos/dos'
+->#ifndef DEBUG
+->    #define TRACE ->
+->#else
+    #define TRACE WriteF
+->#endif
+
+MODULE 'intuition/intuition','graphics/gfx','dos/dos','dos/rdargs',
+    'workbench/startup','workbench/workbench',
+    '*toolbar/toolbar'
 
 ENUM ERR_OK
 
 CONST NAME='GUI for E'
 
-DEF g_idcmp,g_scrn,g_wndw
+-> Globals are prefixed with g_ and defined here
+DEF g_idcmp, g_scrn, g_wndw, g_tool:PTR TO toolbar
 
 PROC openFile(file)
     DEF buf[144]:STRING
@@ -29,7 +34,7 @@ PROC openFile(file)
 ENDPROC
 
 PROC processArgs()
-    DEF rdargs:PTR TO RdArgs,
+    DEF rargs:PTR TO rdargs,
         wb:PTR TO wbstartup,
         wbArguments:PTR TO wbarg,
         files:PTR TO LONG,
@@ -41,19 +46,31 @@ PROC processArgs()
         files:=List(wb.numargs)
         CopyMem({wbArguments},{files2},wb.numargs)
     ELSE -> launched from command line
-        IF (rdargs:=ReadArgs('FILE/M',files,NIL))=NIL THEN Raise('ARGS')
+        IF (rargs:=ReadArgs('FILE/M',files,NIL))=NIL THEN Raise('ARGS')
         files2:=List(ListMax(files))
         ListCopy(files,files2)
-        FreeArgs(rdargs)
+        FreeArgs(rargs)
     ENDIF
     ForAll({x},files2,`openFile(x))
 ENDPROC
 
 PROC setup()
-    g_scrn:=OpenS(640,256,4,0,NAME)
-    g_wndw:=OpenW(16,0,624,256,
-        g_idcmp,WFLG_BORDERLESS|WFLG_BACKDROP,NAME,g_scrn,NIL)
+    IF (g_scrn:=OpenS(640,256,4,0,NAME))=NIL THEN Raise('SCR')
+    IF (g_wndw:=OpenWindowTagList(NIL, [
+        WA_LEFT,16,
+        WA_TOP,0,
+        WA_WIDTH,624,
+        WA_HEIGHT,256,
+        WA_IDCMP, g_idcmp,
+        WA_BORDERLESS, TRUE,
+        WA_BACKDROP, TRUE,
+        WA_CUSTOMSCREEN, g_scrn,
+        TAG_DONE
+        ]))=NIL THEN Raise('WIN')
+    NEW g_tool.create(0,0,256,0)
 ENDPROC
+
+CHAR VER,0
 
 PROC main() HANDLE
     setup()
@@ -63,16 +80,17 @@ EXCEPT
         CASE ERR_OK
             -> No errors so do nothing
         CASE 'ARGS'
-            WriteF('Arguments couldn\'t be read.\n')
+            WriteF('Arguments could not be read.\n')
         CASE 'SPR'
-            WriteF('Couldn\t allocate appropriate sprite.')
+            WriteF('Could not allocate appropriate sprite.')
         CASE 'SCR'
-            WriteF('Couldn\'t open custom screen.')
+            WriteF('Could not open custom screen.')
         CASE 'WIN'
-            WriteF('Couldn\'t open window.')
+            WriteF('Could not open window.')
         CASE 'MEM'
             WriteF('Out of RAM.\n')
         DEFAULT
             WriteF('An unhandled exception occurred numbered \d.\n', exception)
     ENDSELECT
+    g_tool.free()
 ENDPROC

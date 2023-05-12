@@ -1,5 +1,9 @@
 OPT MODULE,OSVERSION=40
 
+#ifndef EVO_3_6_0
+    FATAL('Requires E-VO compiler version 3.6.0 or newer')
+#endif
+
 MODULE 'graphics/gfx','graphics/sprite','exec/memory',
     'intuition/intuition','intuition/screens','utility/tagitem'
 
@@ -48,7 +52,7 @@ PROC create(x,y,height,tags) OF toolbar
     UNTIL self.spritenum<>-1
     self.palettebase:=SPRPALETTEBASE(self.spritenum)
     -> Build a screen structure using the bitmap
-    self.scrn:=OpenScreenTagList(NIL, [
+    IF (self.scrn:=OpenScreenTagList(NIL, [
         SA_HEIGHT, height,
         SA_WIDTH, BYTESPERPLANE*8,
         SA_BITMAP, self.bm,
@@ -56,9 +60,9 @@ PROC create(x,y,height,tags) OF toolbar
         SA_BEHIND, TRUE,
         SA_DEPTH, BITDEPTH,
         TAG_DONE
-    ])
+    ]))=NIL THEN Raise('SCR')
     -> open the actual window
-    self.wndw:=OpenWindowTagList(NIL, [
+    IF (self.wndw:=OpenWindowTagList(NIL, [
         WA_LEFT, 0,
         WA_TOP, 0+MOVEGADHEIGHT,
         WA_WIDTH, BYTESPERPLANE*8,
@@ -66,12 +70,12 @@ PROC create(x,y,height,tags) OF toolbar
         WA_SIZEGADGET, FALSE,
         WA_DRAGBAR, FALSE,
         WA_CLOSEGADGET, FALSE,
-        WA_CUSTOMSCREEN, TRUE,
+        WA_CUSTOMSCREEN, self.scrn,
         WA_NOCAREREFRESH, TRUE,
         WA_BACKDROP, TRUE,
         WA_BORDERLESS, TRUE,
         TAG_DONE
-    ])
+    ]))=NIL THEN Raise('WIN')
 ENDPROC
 
 PROC getWindow() OF toolbar IS self.wndw
@@ -81,5 +85,5 @@ PROC getPaletteBase() OF toolbar IS self.palettebase
 PROC free() OF toolbar
     CloseWindow(self.wndw)
     CloseScreen(self.scrn)
-    FreeSprite(self.spritenum)
+    IFN self.spritenum<0 THEN FreeSprite(self.spritenum)
 ENDPROC
