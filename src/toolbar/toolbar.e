@@ -74,6 +74,10 @@ PROC create(x,y,height,tags) OF toolbar
     ])
 ENDPROC
 
+PROC getWindow() OF toolbar IS self.wndw
+
+PROC getPaletteBase() OF toolbar IS self.palettebase
+
 PROC free() OF toolbar
     CloseWindow(self.wndw)
     CloseScreen(self.scrn)
