@@ -1,0 +1,8 @@
+all: GUI4E
+
+toolbar/toolbar.m: toolbar/toolbar.e
+	cd toolbar
+	evo toolbar.e
+
+GUI4E: GUI4E.e toolbar/toolbar.m
+	evo GUI4E.e

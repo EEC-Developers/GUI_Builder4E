@@ -6,12 +6,6 @@ OPT OSVERSION=40,PREPROCESS
 
 #date VER '$VER: GUI4E v0.1 (%d.%aM.%y) by Samuel D. Crow'
 
-->#ifndef DEBUG
-->    #define TRACE ->
-->#else
-    #define TRACE WriteF
-->#endif
-
 MODULE 'intuition/intuition','graphics/gfx','dos/dos','dos/rdargs',
     'workbench/startup','workbench/workbench',
     '*toolbar/toolbar'
@@ -23,6 +17,20 @@ CONST NAME='GUI for E'
 -> Globals are prefixed with g_ and defined here
 DEF g_idcmp, g_scrn, g_wndw, g_tool:PTR TO toolbar
 
+#ifdef DEBUG
+DEF g_log
+PROC trace(msg,var=NIL)
+    IF var
+        VfPrintf(g_log,msg,var)
+    ELSE
+        Fputs(g_log,msg)
+    ENDIF
+    Flush(g_log)
+ENDPROC
+#else
+PROC trace(msg,var=NIL) IS VOID
+#endif
+
 PROC openFile(file)
     DEF buf[144]:STRING
     RightStr(buf,file,4)
@@ -30,7 +38,7 @@ PROC openFile(file)
     IF StrCmp(buf,'.GUI')
         RETURN
     ENDIF
-    TRACE('Skipping illegal filename "\s"\n',file)
+    trace('Skipping illegal filename "\s".\n',file)
 ENDPROC
 
 PROC processArgs()
@@ -70,9 +78,13 @@ PROC setup()
     NEW g_tool.create(0,0,256,0)
 ENDPROC
 
-CHAR VER,0
+version: CHAR VER,0
 
 PROC main() HANDLE
+#ifdef DEBUG
+    g_log:=Open('GUI4E.log',MODE_NEWFILE)
+#endif
+    trace('\s\n',{version})
     setup()
     processArgs()
 EXCEPT
@@ -93,4 +105,6 @@ EXCEPT
             WriteF('An unhandled exception occurred numbered \d.\n', exception)
     ENDSELECT
     g_tool.free()
+    CloseWindow(g_wndw)
+    CloseScreen(g_scrn)
 ENDPROC
