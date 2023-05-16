@@ -1,20 +1,23 @@
-OPT MODULE,OSVERSION=40
+OPT MODULE,OSVERSION=40,PREPROCESS
 
 #ifndef EVO_3_6_0
     FATAL('Requires E-VO compiler version 3.6.0 or newer')
 #endif
 
-MODULE 'graphics/gfx','graphics/sprite','exec/memory',
-    'intuition/intuition','intuition/screens','utility/tagitem'
+MODULE 'graphics/gfx','graphics/sprite','graphics/modeid',
+    'intuition/intuition','intuition/screens',
+    'utility/tagitem','exec/memory'
+
 
 -> TODO: Fix AGA and SuperAGA sprite support
 CONST BITDEPTH=2
 CONST BYTESPERPLANE=2
+CONST BITSPERPLANE=BYTESPERPLANE*8
 CONST BYTESPERROW=BYTESPERPLANE*BITDEPTH
 CONST NUMCONTROLWORDS=2
 CONST MINSPRITE=2
 CONST SPRPALETTEMASK=6
-CONST NUMPALETTEENTRIES=1 << BITDEPTH
+#define NUMPALETTEENTRIES (1<<(BITDEPTH-1))
 -> TODO: Define as height of drag bar move gadget
 CONST MOVEGADHEIGHT=0
 
@@ -54,11 +57,14 @@ PROC create(x,y,height,tags) OF toolbar
     -> Build a screen structure using the bitmap
     IF (self.scrn:=OpenScreenTagList(NIL, [
         SA_HEIGHT, height,
-        SA_WIDTH, BYTESPERPLANE*8,
+        SA_WIDTH, BITSPERPLANE,
         SA_BITMAP, self.bm,
         SA_QUIET, TRUE,
         SA_BEHIND, TRUE,
         SA_DEPTH, BITDEPTH,
+        SA_EXCLUSIVE, TRUE,
+        SA_DRAGGABLE, FALSE,
+        SA_DISPLAYID, LORES_KEY,
         TAG_DONE
     ]))=NIL THEN Raise('SCR')
     -> open the actual window

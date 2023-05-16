@@ -6,13 +6,18 @@ OPT OSVERSION=40,PREPROCESS
 
 #date VER '$VER: GUI4E v0.1 (%d.%aM.%y) by Samuel D. Crow'
 
-MODULE 'intuition/intuition','graphics/gfx','dos/dos','dos/rdargs',
+MODULE 'intuition/intuition','intuition/screens',
+    'graphics/gfx','graphics/modeid',
+    'dos/dos','dos/rdargs',
     'workbench/startup','workbench/workbench',
     '*toolbar/toolbar'
 
 ENUM ERR_OK
 
 CONST NAME='GUI for E'
+CONST SCREENWIDTH=640
+CONST TOOLWIDTH=32 -> 16 Low Res pixels
+CONST WINDOWWIDTH=SCREENWIDTH-TOOLWIDTH
 
 -> Globals are prefixed with g_ and defined here
 DEF g_idcmp, g_scrn, g_wndw, g_tool:PTR TO toolbar
@@ -28,7 +33,7 @@ PROC trace(msg,var=NIL)
     Flush(g_log)
 ENDPROC
 #else
-PROC trace(msg,var=NIL) IS VOID
+PROC trace(msg,var=NIL) IS RETURN
 #endif
 
 PROC openFile(file)
@@ -63,19 +68,24 @@ PROC processArgs()
 ENDPROC
 
 PROC setup()
-    IF (g_scrn:=OpenS(640,256,4,0,NAME))=NIL THEN Raise('SCR')
+    IF (g_scrn:=OpenScreenTagList(NIL, [
+        SA_WIDTH, SCREENWIDTH,
+        SA_DEPTH, 4,
+        SA_TITLE, NAME,
+        SA_DISPLAYID, HIRESLACE_KEY,
+        TAG_DONE
+        ]))=NIL THEN Raise('SCR')
+    trace('Opened main screen successfully.\n')
     IF (g_wndw:=OpenWindowTagList(NIL, [
-        WA_LEFT,16,
-        WA_TOP,0,
-        WA_WIDTH,624,
-        WA_HEIGHT,256,
+        WA_LEFT, TOOLWIDTH,
+        WA_TOP, 0,
+        WA_WIDTH, WINDOWWIDTH,
         WA_IDCMP, g_idcmp,
-        WA_BORDERLESS, TRUE,
-        WA_BACKDROP, TRUE,
         WA_CUSTOMSCREEN, g_scrn,
         TAG_DONE
         ]))=NIL THEN Raise('WIN')
-    NEW g_tool.create(0,0,256,0)
+    trace('Opened main window successfully.\n')
+    NEW g_tool.create(0,0,200,NIL)
 ENDPROC
 
 version: CHAR VER,0
