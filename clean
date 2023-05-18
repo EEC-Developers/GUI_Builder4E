@@ -1,2 +1,2 @@
-delete src/GUI4E
+delete src/GUI4E src/GUI4E.log
 delete src/#?.m all
