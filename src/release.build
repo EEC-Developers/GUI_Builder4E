@@ -4,5 +4,5 @@ toolbar/toolbar.m: toolbar/toolbar.e
 	cd toolbar
 	evo toolbar.e
 
-GUI4E: GUI4E.e toolbar/toolbar.m
+GUI4E: GUI4E.e
 	evo GUI4E.e

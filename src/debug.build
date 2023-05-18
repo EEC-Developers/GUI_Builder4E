@@ -5,5 +5,5 @@ all: GUI4E
 toolbar/toolbar.m: toolbar/toolbar.e
 	evo toolbar/toolbar.e $(DEBUGFLAGS)
 
-GUI4E: GUI4E.e toolbar/toolbar.m
+GUI4E: GUI4E.e
 	evo GUI4E.e $(DEBUGFLAGS)

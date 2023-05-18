@@ -65,7 +65,7 @@ PROC processArgs()
         ListCopy(files,files2)
         FreeArgs(rargs)
     ENDIF
-    trace('Arguments passed: \d.\n', ListLen(files2))
+    trace('Arguments passed: %ld.\n', ListLen(files2))
     ForAll({x},files2,`openFile(x))
 ENDPROC
 
@@ -81,7 +81,11 @@ PROC setup()
     IF (g_wndw:=OpenWindowTagList(NIL, [
         WA_LEFT, TOOLWIDTH,
         WA_WIDTH, WINDOWWIDTH,
-        WA_IDCMP, g_idcmp,
+        WA_DRAGBAR, TRUE,
+        WA_SIZEGADGET, TRUE,
+        WA_DEPTHGADGET, TRUE,
+        WA_CLOSEGADGET, TRUE,
+        WA_NEWLOOKMENUS, TRUE,
         WA_CUSTOMSCREEN, g_scrn,
         TAG_DONE
         ]))=NIL THEN Raise('WIN')
@@ -91,6 +95,7 @@ PROC setup()
         WA_WIDTH, TOOLWIDTH,
         WA_BACKDROP, TRUE,
         WA_BORDERLESS, TRUE,
+        WA_CUSTOMSCREEN, g_scrn,
         TAG_DONE
     ]))=NIL THEN Raise(ERR_TOOL)
     trace('Opened the toolbar window successfully.\n')
